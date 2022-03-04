@@ -1,12 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿
 using System.Net;
+using System.IO;
 using System.Text;
 using System.Web;
+using System.Diagnostics;
 
 namespace BasicServerHTTPlistener
 {
+    class MyMethods
+    {
+        public static string Exec(string value1, string value2)
+        {
+            System.Diagnostics.ProcessStartInfo start = new ProcessStartInfo();
+            Console.Write(Directory.GetCurrentDirectory());
+            start.FileName = @"../../../../builder.sh";
+            start.Arguments = value1 + " " + value2;
+            start.UseShellExecute = false;
+            start.RedirectStandardOutput = true;
+            //
+            // Start the process.
+            //
+            using (Process process = Process.Start(start))
+            {
+                //
+                // Read in all the text from the process with the StreamReader.
+                //
+                using (StreamReader reader = process.StandardOutput)
+                {
+                    string result = reader.ReadToEnd();
+                    Console.WriteLine(result);
+                    Console.ReadLine();
+                }
+            }
+            return "<html><body>ERROR 500</body></html>";
+        }
+    }
+
     internal class Program
     {
         private static void Main(string[] args)
@@ -18,8 +47,8 @@ namespace BasicServerHTTPlistener
                 Console.WriteLine("A more recent Windows version is required to use the HttpListener class.");
                 return;
             }
- 
- 
+
+
             // Create a listener.
             HttpListener listener = new HttpListener();
 
@@ -71,46 +100,27 @@ namespace BasicServerHTTPlistener
                         documentContents = readStream.ReadToEnd();
                     }
                 }
-                
+
                 // get url 
                 Console.WriteLine($"Received request for {request.Url}");
-
-                //get url protocol
-                Console.WriteLine(request.Url.Scheme);
-                //get user in url
-                Console.WriteLine(request.Url.UserInfo);
-                //get host in url
-                Console.WriteLine(request.Url.Host);
-                //get port in url
-                Console.WriteLine(request.Url.Port);
-                //get path in url 
-                Console.WriteLine(request.Url.LocalPath);
-
-                // parse path in url 
-                foreach (string str in request.Url.Segments)
+                string result = "<html><body>Not found</body></html>";
+                if (request.Url.AbsolutePath == "/generate/html/exe")
                 {
-                    Console.WriteLine(str);
-                }
+                    string value1 = HttpUtility.ParseQueryString(request.Url.Query).Get("param1");
+                    string value2 = HttpUtility.ParseQueryString(request.Url.Query).Get("param2");
+                    result = MyMethods.Exec(value1, value2);
+                };
 
-                //get params un url. After ? and between &
 
-                Console.WriteLine(request.Url.Query);
-
-                //parse params in url
-                Console.WriteLine("param1 = " + HttpUtility.ParseQueryString(request.Url.Query).Get("param1"));
-                Console.WriteLine("param2 = " + HttpUtility.ParseQueryString(request.Url.Query).Get("param2"));
-                Console.WriteLine("param3 = " + HttpUtility.ParseQueryString(request.Url.Query).Get("param3"));
-                Console.WriteLine("param4 = " + HttpUtility.ParseQueryString(request.Url.Query).Get("param4"));
-
-                //
+               
                 Console.WriteLine(documentContents);
 
                 // Obtain a response object.
                 HttpListenerResponse response = context.Response;
 
                 // Construct a response.
-                string responseString = "<HTML><BODY> Hello world!</BODY></HTML>";
-                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                Console.WriteLine(result);
+                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(result);
                 // Get a response stream and write the response to it.
                 response.ContentLength64 = buffer.Length;
                 System.IO.Stream output = response.OutputStream;
