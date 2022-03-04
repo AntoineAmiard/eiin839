@@ -15,7 +15,7 @@ namespace BasicServerHTTPlistener
             return "<html><body> Methode 1 avec " + value1 + " et " + value2 + "</body></html>";
         }
 
-        public static string Method(string value1, string value2)
+        public static string Method2(string value1, string value2)
         {
             return "<html><body> Methode 2 avec" + value1 + " et " + value2 + "</body></html>";
         }
